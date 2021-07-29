@@ -29,7 +29,7 @@
 
     - name: Get ServiceNow CI information
       ansible.builtin.uri:
-        url: "{{ uri }}/table/cmdb_ci/{{ item.ci_item.value }}"
+        url: "{{ uri }}/cmdb_ci/{{ item.ci_item.value }}"
         user: "{{ sn_username }}"
         password: "{{ sn_password }}"
       register: ci_info
