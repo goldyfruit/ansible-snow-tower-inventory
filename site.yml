@@ -6,14 +6,14 @@
     change_id: CHG0040003
     org: Default
     check_ssl: no
-    uri: "https://{{ SN_INSTANCE }}.service-now.com/api/now/table"
+    uri: "https://{{ lookup('env', SN_INSTANCE) }}.service-now.com/api/now/table"
 
   tasks:
     - name: Get ServiceNow Change information
       ansible.builtin.uri:
         url: "{{ uri }}/change_request?sysparm_query=number={{ change_id }}"
-        user: "{{ SN_USERNAME }}"
-        password: "{{ SN_PASSWORD }}"
+        user: "{{ lookup('env', SN_USERNAME) }}"
+        password: "{{ lookup('env', SN_PASSWORD) }}"
       register: change_info
 
     - set_fact:
