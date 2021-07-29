@@ -6,14 +6,14 @@
     change_id: CHG0040003
     org: Default
     check_ssl: no
-    uri: "https://{{ lookup('env', SN_INSTANCE) }}.service-now.com/api/now/table"
+    uri: "https://{{ sn_instance }}.service-now.com/api/now/table"
 
   tasks:
     - name: Get ServiceNow Change information
       ansible.builtin.uri:
         url: "{{ uri }}/change_request?sysparm_query=number={{ change_id }}"
-        user: "{{ lookup('env', SN_USERNAME) }}"
-        password: "{{ lookup('env', SN_PASSWORD) }}"
+        user: "{{ sn_username }}"
+        password: "{{ sn_password }}"
       register: change_info
 
     - set_fact:
@@ -22,15 +22,15 @@
     - name: Get ServiceNow Task CI items
       ansible.builtin.uri:
         url: "{{ uri }}/task_ci?sysparm_query=task={{ snow_change_sys_id }}"
-        user: "{{ SN_USERNAME }}"
-        password: "{{ SN_PASSWORD }}"
+        user: "{{ sn_username }}"
+        password: "{{ sn_password }}"
       register: task_infoS
 
     - name: Get ServiceNow CI information
       ansible.builtin.uri:
         url: "{{ uri }}/table/cmdb_ci/{{ item.ci_item.value }}"
-        user: "{{ SN_USERNAME }}"
-        password: "{{ SN_PASSWORD }}"
+        user: "{{ sn_username }}"
+        password: "{{ sn_password }}"
       register: ci_info
       with_items:
         - "{{ task_info.json.result }}"
