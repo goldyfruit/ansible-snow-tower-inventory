@@ -16,7 +16,7 @@
         password: "{{ sn_password }}"
       register: change_info
 
-    - set_fact:
+    - name: Collect Change sys_id information:
         snow_change_sys_id: "{{ change_info.json.result.0.sys_id }}"
 
     - name: Get ServiceNow Task CI items
@@ -24,7 +24,7 @@
         url: "{{ uri }}/task_ci?sysparm_query=task={{ snow_change_sys_id }}"
         user: "{{ sn_username }}"
         password: "{{ sn_password }}"
-      register: task_infoS
+      register: task_info
 
     - name: Get ServiceNow CI information
       ansible.builtin.uri:
