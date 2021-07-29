@@ -27,6 +27,10 @@
         password: "{{ sn_password }}"
       register: task_info
 
+    - name: Check if Change has affected CIs
+      ansible.builtin.set_fact:
+        has_affected_cis: "{{ 'no' if task_info.json.result | length < 1 else 'yes' }}"
+
     - name: Get ServiceNow CI information
       ansible.builtin.uri:
         url: "{{ uri }}/cmdb_ci/{{ item.ci_item.value }}"
@@ -35,12 +39,14 @@
       register: ci_info
       with_items:
         - "{{ task_info.json.result }}"
+      when: has_affected_cis | bool
 
     - name: Collect affected CI
       ansible.builtin.set_fact:
         snow_affected_cis: "{{ snow_affected_cis | default({}) | combine ({item.json.result.asset_tag: item.json.result.name}) }}"
       with_items:
         - "{{ ci_info.results }}"
+      when: has_affected_cis | bool
 
     - name: Create {{ change_id }} inventory
       awx.awx.inventory:
@@ -48,6 +54,7 @@
         description: "Inventory related to {{ change_id }}"
         organization: "{{ org }}"
         validate_certs: "{{ check_ssl }}"
+      when: has_affected_cis | bool
 
     - name: Add host(s) to {{ change_id }} inventory
       vars:
@@ -62,3 +69,4 @@
           asset_tag: "{{ asset_tag }}"
       with_items:
         - "{{ ci_info.results }}"
+      when: has_affected_cis | bool
