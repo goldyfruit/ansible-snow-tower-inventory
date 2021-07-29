@@ -10,7 +10,7 @@
 
   tasks:
     - name: Get ServiceNow Change information
-      ansbible.builtin.uri:
+      ansible.builtin.uri:
         url: "{{ uri }}/change_request?sysparm_query=number={{ change_id }}"
         user: "{{ SN_USERNAME }}"
         password: "{{ SN_PASSWORD }}"
@@ -20,14 +20,14 @@
         snow_change_sys_id: "{{ change_info.json.result.0.sys_id }}"
 
     - name: Get ServiceNow Task CI items
-      ansbible.builtin.uri:
+      ansible.builtin.uri:
         url: "{{ uri }}/task_ci?sysparm_query=task={{ snow_change_sys_id }}"
         user: "{{ SN_USERNAME }}"
         password: "{{ SN_PASSWORD }}"
       register: task_infoS
 
     - name: Get ServiceNow CI information
-      ansbible.builtin.uri:
+      ansible.builtin.uri:
         url: "{{ uri }}/table/cmdb_ci/{{ item.ci_item.value }}"
         user: "{{ SN_USERNAME }}"
         password: "{{ SN_PASSWORD }}"
