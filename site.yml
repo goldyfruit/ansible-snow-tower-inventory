@@ -16,7 +16,8 @@
         password: "{{ sn_password }}"
       register: change_info
 
-    - name: Collect Change sys_id information:
+    - name: Collect Change sys_id information
+      ansible.builtin.set_fact:
         snow_change_sys_id: "{{ change_info.json.result.0.sys_id }}"
 
     - name: Get ServiceNow Task CI items
