@@ -7,6 +7,7 @@
     org: Default
     check_ssl: no
     uri: "https://{{ sn_instance }}.service-now.com/api/now/table"
+    location: "3260 Jay Street, Santa Clara, CA"
 
   tasks:
     - name: Get ServiceNow Change information
@@ -33,7 +34,7 @@
 
     - name: Get ServiceNow CI information
       ansible.builtin.uri:
-        url: "{{ uri }}/cmdb_ci/{{ item.ci_item.value }}"
+        url: "{{ uri }}/cmdb_ci/{{ item.ci_item.value }}?sysparm_display_value=true"
         user: "{{ sn_username }}"
         password: "{{ sn_password }}"
       register: ci_info
@@ -69,4 +70,6 @@
           asset_tag: "{{ asset_tag }}"
       with_items:
         - "{{ ci_info.results }}"
-      when: has_affected_cis | bool
+      when:
+        - has_affected_cis | bool
+        - item.json.result.location.display_value == location
