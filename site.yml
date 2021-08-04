@@ -7,7 +7,7 @@
     org: Default
     check_ssl: no
     uri: "https://{{ sn_instance }}.service-now.com/api/now/table"
-    location_dbc: "200 South James street,Atlanta, GA"
+    location_bdc: "200 South James street,Atlanta, GA"
     location_soc: "3260 Jay Street, Santa Clara, CA"
     bdc:
       - tower.iclabng.com
