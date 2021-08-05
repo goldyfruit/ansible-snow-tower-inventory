@@ -19,6 +19,7 @@
    - setup:
       gather_subset:
        - '!all'
+  
   tasks:
     - name: Set location as BDC
       set_fact:
