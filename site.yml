@@ -14,6 +14,11 @@
       - 7b.c0.7434.ip4.static.sl-reverse.com
     soc:
       - tower.home.lan
+  
+  pre_tasks:
+   - setup:
+      gather_subset:
+       - '!all'
   tasks:
     - name: Set location as BDC
       set_fact:
