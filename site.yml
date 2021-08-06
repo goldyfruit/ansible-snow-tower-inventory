@@ -60,7 +60,7 @@
     - name: Get ServiceNow location information
       vars:
         name: "{{ item.json.result.location.display_value | replace(' ', '+')}}"
-      uri:
+      ansible.builtin.uri:
         url: "{{ uri }}/cmn_location?sysparm_query=name={{ name }}"
         user: "{{ sn_username }}"
         password: "{{ sn_password }}"
@@ -70,7 +70,7 @@
       when: has_affected_cis | bool
 
     - name: Build BDC locations
-      set_fact:
+      ansible.builtin.set_fact:
         location_bdc: "{{ location_bdc | default({}) | combine ({item.json.result.0.name: item.json.result.0.city}) }}"
       with_items: "{{ location_info.results }}"
       when:
@@ -78,7 +78,7 @@
         - item.json.result.0.city in location_bdc_cities
 
     - name: Build SOC locations
-      set_fact:
+      ansible.builtin.set_fact:
         location_soc: "{{ location_soc | default({}) | combine ({item.json.result.0.name: item.json.result.0.city}) }}"
       with_items: "{{ location_info.results }}"
       when:
@@ -86,7 +86,7 @@
         - item.json.result.0.city in location_soc_cities
 
     - name: Define location fact
-      set_fact:
+      ansible.builtin.set_fact:
         location: "{{ location_soc if ansible_fqdn in soc else location_bdc }}"
       when: has_affected_cis | bool
 
