@@ -18,16 +18,6 @@
        - '!all'
   
   tasks:
-    - name: Set location as BDC
-      set_fact:
-        location: "{{ location_bdc }}"
-      when: ansible_fqdn in bdc
-
-    - name: Set location as SOC
-      set_fact:
-        location: "{{ location_soc }}"
-      when: ansible_fqdn in soc
-
     - name: Get ServiceNow Change information
       ansible.builtin.uri:
         url: "{{ uri }}/change_request?sysparm_query=number={{ change_id }}"
