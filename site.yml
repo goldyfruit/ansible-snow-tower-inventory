@@ -61,9 +61,9 @@
       vars:
         name: "{{ item.json.result.location.display_value | replace(' ', '+')}}"
       uri:
-        url: "https://dev108594.service-now.com/api/now/table/cmn_location?sysparm_query=name={{ name }}"
-        headers:
-          Authorization: "Bearer {{ token }}"
+        url: "{{ uri }}/cmn_location?sysparm_query=name={{ name }}"
+        user: "{{ sn_username }}"
+        password: "{{ sn_password }}"
       register: location_info
       with_items:
         - "{{ ci_info.results }}"
