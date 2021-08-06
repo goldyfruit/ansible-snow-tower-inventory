@@ -57,6 +57,18 @@
         - "{{ ci_info.results }}"
       when: has_affected_cis | bool
 
+    - name: Get ServiceNow location information
+      vars:
+        name: "{{ item.json.result.location.display_value | replace(' ', '+')}}"
+      uri:
+        url: "https://dev108594.service-now.com/api/now/table/cmn_location?sysparm_query=name={{ name }}"
+        headers:
+          Authorization: "Bearer {{ token }}"
+      register: location_info
+      with_items:
+        - "{{ ci_info.results }}"
+      when: has_affected_cis | bool
+
     - name: Build BDC locations
       set_fact:
         location_bdc: "{{ location_bdc | default({}) | combine ({item.json.result.0.name: item.json.result.0.city}) }}"
