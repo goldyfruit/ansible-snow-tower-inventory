@@ -7,14 +7,11 @@
     org: Default
     check_ssl: no
     uri: "https://{{ sn_instance }}.service-now.com/api/now/table"
-    location_bdc: "200 South James street,Atlanta, GA"
-    location_soc: "3260 Jay Street, Santa Clara, CA"
-    bdc:
-      - tower.iclabng.com
-      - 7b.c0.7434.ip4.static.sl-reverse.com
-    soc:
-      - tower.home.lan
-  
+    location_bdc_cities: []
+    location_soc_cities: []
+    bdc: []
+    soc: []
+
   pre_tasks:
    - setup:
       gather_subset:
@@ -70,6 +67,27 @@
         - "{{ ci_info.results }}"
       when: has_affected_cis | bool
 
+    - name: Build BDC locations
+      set_fact:
+        location_bdc: "{{ location_bdc | default({}) | combine ({item.json.result.0.name: item.json.result.0.city}) }}"
+      with_items: "{{ location_info.results }}"
+      when:
+        - has_affected_cis | bool
+        - item.json.result.0.city in location_bdc_cities
+
+    - name: Build SOC locations
+      set_fact:
+        location_soc: "{{ location_soc | default({}) | combine ({item.json.result.0.name: item.json.result.0.city}) }}"
+      with_items: "{{ location_info.results }}"
+      when:
+        - has_affected_cis | bool
+        - item.json.result.0.city in location_soc_cities
+
+    - name: Define location fact
+      set_fact:
+        location: "{{ location_soc if ansible_fqdn in soc else location_bdc }}"
+      when: has_affected_cis | bool
+
     - name: Create {{ change_id }} inventory
       awx.awx.inventory:
         name: "{{ change_id }}"
@@ -80,8 +98,8 @@
 
     - name: Add host(s) to {{ change_id }} inventory
       vars:
-        name: "{{ item.json.result.name }}"
-        asset_tag: "{{ item.json.result.asset_tag }}"
+        name: "{{ item.0.json.result.name }}"
+        asset_tag: "{{ item.0.json.result.asset_tag }}"
       awx.awx.host:
         inventory: "{{ change_id }}"
         name: "{{ name }}"
@@ -89,8 +107,7 @@
         validate_certs: "{{ check_ssl }}"
         variables:
           asset_tag: "{{ asset_tag }}"
-      with_items:
-        - "{{ ci_info.results }}"
+      loop: "{{ ci_info.results | zip(location_info.results) | list }}"
       when:
-        - has_affected_cis | bool
-        - item.json.result.location.display_value == location
+        - item.0.json.result.location.display_value in (location.keys() | list)
+        - item.1.json.result.0.city in (location.values() | list)
