@@ -114,14 +114,14 @@
     - name: Add host(s) to {{ change_id }} inventory
       vars:
         name: "{{ item.0.json.result.name }}"
-        asset_tag: "{{ item.0.json.result.asset_tag }}"
+        ansible_host: "{{ item.0.json.result.ip_address }}"
       awx.awx.host:
         inventory: "{{ change_id }}"
         name: "{{ name }}"
         description: "CI from {{ change_id }}"
         validate_certs: "{{ check_ssl }}"
         variables:
-          asset_tag: "{{ asset_tag }}"
+          ansible_host: "{{ ansible_host }}"
       loop: "{{ ci_info.results | zip(location_info.results) | list }}"
       when:
         - item.0.json.result.location.display_value in (location.keys() | list)
