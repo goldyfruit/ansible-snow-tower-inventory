@@ -1,9 +1,10 @@
 ---
-- hosts: all
+- hosts: localhost
+  connction: local
   gather_facts: no
 
   vars:
-    change_id: CHG0040003
+    snow_snow_change_id: CHG0040003
     org: Default
     check_ssl: no
     uri: "https://{{ sn_instance }}.service-now.com/api/now/table"
@@ -23,7 +24,7 @@
   tasks:
     - name: Get ServiceNow Change information
       ansible.builtin.uri:
-        url: "{{ uri }}/change_request?sysparm_query=number={{ change_id }}"
+        url: "{{ uri }}/change_request?sysparm_query=number={{ snow_change_id }}"
         user: "{{ sn_username }}"
         password: "{{ sn_password }}"
       register: change_info
@@ -103,22 +104,22 @@
         - item.1.json.result.0.city in (location.values() | list)
         - has_affected_cis | bool
 
-    - name: Create {{ change_id }} inventory
+    - name: Create {{ snow_change_id }} inventory
       awx.awx.inventory:
-        name: "{{ change_id }}"
-        description: "Inventory related to {{ change_id }}"
+        name: "{{ snow_change_id }}"
+        description: "Inventory related to {{ snow_change_id }}"
         organization: "{{ org }}"
         validate_certs: "{{ check_ssl }}"
       when: has_affected_cis | bool
 
-    - name: Add host(s) to {{ change_id }} inventory
+    - name: Add host(s) to {{ snow_change_id }} inventory
       vars:
         name: "{{ item.0.json.result.name }}"
         ansible_host: "{{ item.0.json.result.ip_address }}"
       awx.awx.host:
-        inventory: "{{ change_id }}"
+        inventory: "{{ snow_change_id }}"
         name: "{{ name }}"
-        description: "CI from {{ change_id }}"
+        description: "CI from {{ snow_change_id }}"
         validate_certs: "{{ check_ssl }}"
         variables:
           ansible_host: "{{ ansible_host }}"
@@ -129,9 +130,9 @@
         - item.1.json.result.0.city in (location.values() | list)
         - has_affected_cis | bool
 
-    - name: Add localhost to {{ change_id }} inventory
+    - name: Add localhost to {{ snow_change_id }} inventory
       awx.awx.host:
-        inventory: "{{ change_id }}"
+        inventory: "{{ snow_change_id }}"
         name: localhost
         description: "Ansible Tower server"
         validate_certs: "{{ check_ssl }}"
@@ -140,32 +141,32 @@
           ansible_connection: local
       when: has_affected_cis | bool
 
-    - name: Create {{ change_id }} inventory's servers parent group
+    - name: Create {{ snow_change_id }} inventory's servers parent group
       awx.awx.group:
         name: servers
-        inventory: "{{ change_id }}"
-        description: "Inventory parent group related to {{ change_id }}"
+        inventory: "{{ snow_change_id }}"
+        description: "Inventory parent group related to {{ snow_change_id }}"
         hosts: "{{ cis_per_location }}"
         validate_certs: "{{ check_ssl }}"
         variables:
           ansible_python_interpreter: "{{ python_interpreter }}"
       when: has_affected_cis | bool
 
-    - name: Create {{ change_id }} inventory's report parent group
+    - name: Create {{ snow_change_id }} inventory's report parent group
       awx.awx.group:
         name: report
-        inventory: "{{ change_id }}"
-        description: "Inventory parent group related to {{ change_id }}"
+        inventory: "{{ snow_change_id }}"
+        description: "Inventory parent group related to {{ snow_change_id }}"
         hosts:
           - localhost
         validate_certs: "{{ check_ssl }}"
       when: has_affected_cis | bool
 
-    - name: Create {{ change_id }} inventory's children groups
+    - name: Create {{ snow_change_id }} inventory's children groups
       awx.awx.group:
         name: "{{ item }}"
-        inventory: "{{ change_id }}"
-        description: "Inventory children group related to {{ change_id }}"
+        inventory: "{{ snow_change_id }}"
+        description: "Inventory children group related to {{ snow_change_id }}"
         children:
           - servers
         validate_certs: "{{ check_ssl }}"
