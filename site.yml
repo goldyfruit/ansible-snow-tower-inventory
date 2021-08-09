@@ -11,6 +11,9 @@
     location_soc_cities: []
     bdc: []
     soc: []
+    host_statuses:
+      - installed
+    python_interpreter: /usr/bin/python2.7
 
   pre_tasks:
    - setup:
@@ -90,6 +93,16 @@
         location: "{{ location_soc if ansible_fqdn in soc else location_bdc }}"
       when: has_affected_cis | bool
 
+    - name: Define fact with CIs per location and status
+      ansible.builtin.set_fact:
+        cis_per_location: "{{ cis_per_location | default([]) + [item.0.json.result.name] }}"
+      loop: "{{ ci_info.results | zip(location_info.results) | list }}"
+      when:
+        - item.0.json.result.location.display_value in (location.keys() | list)
+        - (item.0.json.result.install_status | lower) in (host_statuses | list)
+        - item.1.json.result.0.city in (location.values() | list)
+        - has_affected_cis | bool
+
     - name: Create {{ change_id }} inventory
       awx.awx.inventory:
         name: "{{ change_id }}"
@@ -112,4 +125,53 @@
       loop: "{{ ci_info.results | zip(location_info.results) | list }}"
       when:
         - item.0.json.result.location.display_value in (location.keys() | list)
+        - (item.0.json.result.install_status | lower) in (host_statuses | list)
         - item.1.json.result.0.city in (location.values() | list)
+        - has_affected_cis | bool
+
+    - name: Add localhost to {{ change_id }} inventory
+      awx.awx.host:
+        inventory: "{{ change_id }}"
+        name: localhost
+        description: "Ansible Tower server"
+        validate_certs: "{{ check_ssl }}"
+        variables:
+          ansible_host: 127.0.0.1
+          ansible_connection: local
+      when: has_affected_cis | bool
+
+    - name: Create {{ change_id }} inventory's servers parent group
+      awx.awx.group:
+        name: servers
+        inventory: "{{ change_id }}"
+        description: "Inventory parent group related to {{ change_id }}"
+        hosts: "{{ cis_per_location }}"
+        validate_certs: "{{ check_ssl }}"
+        variables:
+          ansible_python_interpreter: "{{ python_interpreter }}"
+      when: has_affected_cis | bool
+
+    - name: Create {{ change_id }} inventory's report parent group
+      awx.awx.group:
+        name: report
+        inventory: "{{ change_id }}"
+        description: "Inventory parent group related to {{ change_id }}"
+        hosts:
+          - localhost
+        validate_certs: "{{ check_ssl }}"
+      when: has_affected_cis | bool
+
+    - name: Create {{ change_id }} inventory's children groups
+      awx.awx.group:
+        name: "{{ item }}"
+        inventory: "{{ change_id }}"
+        description: "Inventory children group related to {{ change_id }}"
+        children:
+          - servers
+        validate_certs: "{{ check_ssl }}"
+      loop:
+        - healthcheck
+        - precheck
+        - patching
+        - postcheck
+      when: has_affected_cis | bool
