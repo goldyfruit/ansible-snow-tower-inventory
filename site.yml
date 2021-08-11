@@ -79,7 +79,7 @@
       with_items: "{{ location_info.results }}"
       when:
         - has_affected_cis | bool
-        - item.json.result.0.city in location_bdc_cities
+        - not item.json.result.0.city in location_soc_cities
 
     - name: Build SOC locations
       ansible.builtin.set_fact:
